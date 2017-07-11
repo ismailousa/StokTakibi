@@ -10,11 +10,11 @@ String stokAdi;
 int stokTipi;
 int birim;
 String barKodu;
-double kdvTipi;
+int kdvTipi;
 String aciklama;
-Date olusturmaTarihi; 
+String olusturmaTarihi; 
 
-public Stok(String stokKodu,String stokAdi,int stokTipi,int birim,String barKodu,double kdvTipi,String aciklama)
+public Stok(String stokKodu,String stokAdi,int stokTipi,int birim,String barKodu,int kdvTipi,String aciklama)
 {
 	this.stokKodu = stokKodu;
 	this.stokAdi = stokAdi;
@@ -23,7 +23,7 @@ public Stok(String stokKodu,String stokAdi,int stokTipi,int birim,String barKodu
 	this.barKodu = barKodu;
 	this.kdvTipi = kdvTipi;
 	this.aciklama = aciklama;
-	this.olusturmaTarihi = Calendar.getInstance().getTime();
+	this.olusturmaTarihi = "2017/06/12 10:24:22";//Calendar.getInstance().getTime();
 }
 
 public String getStokKodu()
@@ -101,17 +101,17 @@ public double getKdvTipi()
 	return this.kdvTipi;
 }
 
-public void setKdvTipi(double value)
+public void setKdvTipi(int value)
 {
 	kdvTipi = value;
 }
 
-public Date getOlusturmaTarihi()
+public String getOlusturmaTarihi()
 {
 	return this.olusturmaTarihi;
 }
 
-public void setOlusturmaTarihi(Date value)
+public void setOlusturmaTarihi(String value)
 {
 	olusturmaTarihi = value;
 }
