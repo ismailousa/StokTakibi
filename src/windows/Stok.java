@@ -1,5 +1,6 @@
 package windows;
 
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 public class Stok {
@@ -23,7 +24,10 @@ public Stok(String stokKodu,String stokAdi,int stokTipi,int birim,String barKodu
 	this.barKodu = barKodu;
 	this.kdvTipi = kdvTipi;
 	this.aciklama = aciklama;
-	this.olusturmaTarihi = "2017/06/12 10:24:22";//Calendar.getInstance().getTime();
+	SimpleDateFormat sdfDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+	Date now = new Date();
+	String strDate = sdfDate.format(now);
+	this.olusturmaTarihi = strDate;
 }
 
 public String getStokKodu()
@@ -114,5 +118,14 @@ public String getOlusturmaTarihi()
 public void setOlusturmaTarihi(String value)
 {
 	olusturmaTarihi = value;
+}
+
+
+public boolean isEmpty()
+{
+	if (!stokKodu.equals("") && !stokAdi.equals("") && !barKodu.equals("") && !aciklama.equals("") && !olusturmaTarihi.equals("") && stokTipi != 0 && birim != 0 && kdvTipi != 0)
+		return false;
+	else
+		return true;
 }
 }

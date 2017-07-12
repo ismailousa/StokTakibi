@@ -2,6 +2,7 @@ package windows;
 
 import java.awt.Color;
 import java.awt.EventQueue;
+import java.awt.Font;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Vector;
@@ -26,6 +27,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -42,11 +44,17 @@ public class builder {
 
 	private JFrame frame;
 	private static JTextField StokKoduTxt;
-	private JTextField StokAdiTxt;
-	private JTextField BarKoduTxt;
+	private static JTextField StokAdiTxt;
+	private static JTextField BarKoduTxt;
+	private static JTextArea AciklamaTxt;
+	private static JFormattedTextField TarihFtxt;
 	private JTextField textField_3;
+	private static JComboBox<String> StockTipiCbx;
+	private static JComboBox<String> BirimCbx;
+	private static JComboBox kdvCbx;
 	static Connect conn = new Connect();
 	private static JTable table_1;
+	static DefaultTableModel model;
 
 	/**
 	 * Launch the application.
@@ -81,8 +89,6 @@ public class builder {
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.setTitle("Stok Takibi");
 		frame.getContentPane().setBackground(Color.black);
-		//frame.getContentPane().setLayout(null);
-		//frame.pack();
 		frame.setVisible(true);
 		
 		JLabel lblStokKodu = new JLabel("Stok Kodu");
@@ -114,17 +120,35 @@ public class builder {
 		JLabel lblBirim = new JLabel("Birim");
 		lblBirim.setBounds(37, 156, 51, 14);
 		panel.add(lblBirim);
+		
+		JScrollPane scrollPane = new JScrollPane();
+		scrollPane.setBounds(10, 263, 637, 148);
+		panel.add(scrollPane);
 
 		
 		table_1 = new JTable();
-		table_1.setBounds(10, 263, 637, 148);
-		panel.add(table_1);
+		scrollPane.setViewportView(table_1);
 		
-		JFormattedTextField TarihFtxt = new JFormattedTextField();
+		table_1.getSelectionModel().addListSelectionListener(new ListSelectionListener(){
+	        public void valueChanged(ListSelectionEvent event) {
+	            StokKoduTxt.setText(table_1.getValueAt(table_1.getSelectedRow(), 1).toString());
+	            StokAdiTxt.setText(table_1.getValueAt(table_1.getSelectedRow(), 2).toString());
+	            StockTipiCbx.setSelectedItem(conn.getAdi(table_1.getValueAt(table_1.getSelectedRow(), 3).toString(), "stoktipi"));
+	            BirimCbx.setSelectedItem(conn.getAdi(table_1.getValueAt(table_1.getSelectedRow(), 4).toString(), "birim"));
+	            kdvCbx.setSelectedItem(conn.getAdi(table_1.getValueAt(table_1.getSelectedRow(), 6).toString(), "kdvtipi"));
+	            TarihFtxt.setText(table_1.getValueAt(table_1.getSelectedRow(), 8).toString());
+	            BarKoduTxt.setText(table_1.getValueAt(table_1.getSelectedRow(), 5).toString());
+	            AciklamaTxt.setText(table_1.getValueAt(table_1.getSelectedRow(), 7).toString());
+	            System.out.println(table_1.getValueAt(table_1.getSelectedRow(), 3).toString());
+	        }
+	    });
+		
+		TarihFtxt = new JFormattedTextField();
 		panel.add(TarihFtxt);
 		TarihFtxt.setBounds(318, 192, 329, 20);
-		TarihFtxt.setValue(Calendar.getInstance().getTime());
-		JTextArea AciklamaTxt = new JTextArea();
+		TarihFtxt.setText("yyyy-MM-dd HH:mm:ss");
+		TarihFtxt.setEditable(false);
+		AciklamaTxt = new JTextArea();
 		panel.add(AciklamaTxt);
 		AciklamaTxt.setBounds(318, 81, 329, 89);
 		
@@ -142,8 +166,10 @@ public class builder {
 			public void actionPerformed(ActionEvent e) {
 				if (table_1.getValueAt(table_1.getSelectedRow(), 1).toString() != null)
 				{
+					model.removeTableModelListener(table_1);
 					conn.deleteStock(table_1.getValueAt(table_1.getSelectedRow(), 0).toString());
-					listele("");
+					model.addTableModelListener(table_1);
+					refresh();
 				}
 			}
 		});
@@ -160,12 +186,12 @@ public class builder {
 		StokAdiTxt.setBounds(83, 93, 157, 20);
 		StokAdiTxt.setColumns(10);
 		
-		JComboBox<String> StockTipiCbx = new JComboBox<String>();
+		StockTipiCbx = new JComboBox<String>();
 		panel.add(StockTipiCbx);
 		StockTipiCbx.setBounds(83, 123, 157, 20);
 		loadItems(StockTipiCbx, "stoktipi");
 		
-		JComboBox<String> BirimCbx = new JComboBox<String>();
+		BirimCbx = new JComboBox<String>();
 		panel.add(BirimCbx);
 		BirimCbx.setBounds(83, 153, 157, 20);
 		loadItems(BirimCbx, "birim");
@@ -175,7 +201,7 @@ public class builder {
 		BarKoduTxt.setBounds(83, 192, 157, 20);
 		BarKoduTxt.setColumns(10);
 		
-		JComboBox kdvCbx = new JComboBox();
+		kdvCbx = new JComboBox();
 		panel.add(kdvCbx);
 		kdvCbx.setBounds(83, 230, 157, 20);
 		loadItems(kdvCbx, "kdvTipi");
@@ -189,8 +215,18 @@ public class builder {
 			public void actionPerformed(ActionEvent e) {
 				Stok stok = new Stok(StokKoduTxt.getText(),StokAdiTxt.getText(), StockTipiCbx.getSelectedIndex() + 1, BirimCbx.getSelectedIndex() + 1,BarKoduTxt.getText(), kdvCbx.getSelectedIndex() + 1, AciklamaTxt.getText());
 				stok.setId(Integer.parseInt(table_1.getValueAt(table_1.getSelectedRow(), 0).toString()));
-				conn.updateStock(stok);
-				listele("");
+				if (!stok.isEmpty())
+				{
+					model.removeTableModelListener(table_1);
+					conn.updateStock(stok);
+					model.addTableModelListener(table_1);
+					refresh();
+				}
+				else
+				{
+					JOptionPane.showMessageDialog(null, "Butun alanlari doldurunuz !", "Hata",
+			                JOptionPane.ERROR_MESSAGE);
+				}
 			}
 		});
 		
@@ -198,10 +234,7 @@ public class builder {
 		panel.add(btnAra);
 		btnAra.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				if (textField_3.getText() == "")
-					listele("");
-				else
-					listele(textField_3.getText());
+				listele(textField_3.getText());
 			}
 		});
 		btnAra.setBounds(13, 21, 58, 23);
@@ -217,32 +250,18 @@ public class builder {
 			@Override
 			public void mouseClicked(MouseEvent arg0) {
 				Stok stok = new Stok(StokKoduTxt.getText(),StokAdiTxt.getText(),StockTipiCbx.getSelectedIndex() + 1, BirimCbx.getSelectedIndex() + 1,BarKoduTxt.getText(), kdvCbx.getSelectedIndex() + 1, AciklamaTxt.getText());
-				conn.addStock(stok);
-				listele("");
+				if (!stok.isEmpty())
+				{
+					conn.addStock(stok);
+					listele("");
+				}
+				else
+				{
+					JOptionPane.showMessageDialog(null, "Butun alanlari doldurunuz !", "Hata",
+			                JOptionPane.ERROR_MESSAGE);
+				}
 			}
 		});
-		btnDzenle.addMouseListener(new MouseAdapter() {
-			@Override
-			public void mouseClicked(MouseEvent arg0) {
-				
-				//TODO
-			}
-		});
-		
-		table_1.getSelectionModel().addListSelectionListener(new ListSelectionListener(){
-	        public void valueChanged(ListSelectionEvent event) {
-	            StokKoduTxt.setText(table_1.getValueAt(table_1.getSelectedRow(), 1).toString());
-	            StokAdiTxt.setText(table_1.getValueAt(table_1.getSelectedRow(), 2).toString());
-	            StockTipiCbx.setSelectedItem(conn.getAdi(table_1.getValueAt(table_1.getSelectedRow(), 3).toString(), "stoktipi"));
-	            BirimCbx.setSelectedItem(conn.getAdi(table_1.getValueAt(table_1.getSelectedRow(), 4).toString(), "birim"));
-	            kdvCbx.setSelectedItem(conn.getAdi(table_1.getValueAt(table_1.getSelectedRow(), 6).toString(), "kdvtipi"));
-	            //TarihFtxt.setValue(table_1.getValueAt(table_1.getSelectedRow(), 8).toString());
-	            BarKoduTxt.setText(table_1.getValueAt(table_1.getSelectedRow(), 5).toString());
-	            AciklamaTxt.setText(table_1.getValueAt(table_1.getSelectedRow(), 7).toString());
-	            System.out.println(table_1.getValueAt(table_1.getSelectedRow(), 3).toString());
-	        }
-	    });
-
 				
 		listele("");
 	}
@@ -256,8 +275,9 @@ public class builder {
 	
 	public static void listele(String quer)
 	{
+		clearAll();
 		String sorgu;
-		if (quer == "")
+		if (quer.equals(""))
 			sorgu = "Select * From stok";
 		else
 			sorgu = "Select * From stok where StokKodu = '" + quer + "'";
@@ -272,8 +292,7 @@ public class builder {
 			for( j=0; j<k; j++) {
 				kolon[j] = rowdata.getColumnName(j+1);
 			}
-			table_1.setModel(new DefaultTableModel(new Object [][]{},kolon));
-			DefaultTableModel model = (DefaultTableModel)table_1.getModel();
+			model = new DefaultTableModel(kolon,0);
 			while(kayitlar.next()) {
 				Object[] o = new Object[k];
 				for(j=0; j<k; j++) {
@@ -285,50 +304,24 @@ public class builder {
 			System.out.println("Veritabanindan veriler listelendi.");
 			posted.close(); 
 			con.close();
-		}catch(Exception e1){ System.out.println(e1);
+		}catch(Exception e1){ //System.out.println(e1);
 		
 	}
 	}
 	
-	public static void listele2(JTable table)
+	public static void clearAll()
 	{
-		String header[] = {"Id","Stok Kodu","Stok Adı","Stok Tipi","Birim", "Bar Kodu", "KDV","Açıklama","Oluşturma Tarihi"};   
-		String[][] tableItems = null;
-		try {
-		     Connection con = conn.getConnection(); 
-		     Statement st = (Statement) con.createStatement(); 
-		     Statement stmt = (Statement) con.createStatement();
-		     
-		     ResultSet rs1 = stmt.executeQuery("Select Count(*) from stok");
-		     rs1.next();
-		     ResultSet rs2 = st.executeQuery("select * from birim");
-		     int stokCount = rs1.getInt(1);
-		     
-		     tableItems = new String[stokCount][9];
-		     int index = 1;
-		     while (rs2.next())
-				{
-					tableItems[index][0] = rs2.getString("Id");
-					tableItems[index][1] = rs2.getString(2);
-					tableItems[index][2] = rs2.getString(3);
-					tableItems[index][3] = rs2.getString(4);
-					tableItems[index][4] = rs2.getString(5);
-					tableItems[index][5] = rs2.getString(6);						
-					tableItems[index][6] = rs2.getString(7);
-					tableItems[index][7] = rs2.getString(8);
-					tableItems[index][8] = rs2.getTimestamp(9).toString();
-					index++;
-				}
-		     
-		     //JTable table = new JTable(buildTableModel(rs));
-		     con.close();
-		}
-
-		catch (SQLException ex) {
-			ex.printStackTrace();
+		StokKoduTxt.setText("");
+		StokAdiTxt.setText("");
+		BarKoduTxt.setText("");
+		AciklamaTxt.setText("");
+		TarihFtxt.setText("yyyy-MM-dd HH:mm:ss");
 	}
-		
-        TableModel model = new DefaultTableModel(tableItems, header);
-        table.setModel(model);
+	
+	public static void refresh()
+	{
+		for (int i = 0; i <5; i++)
+			listele("");
 	}
+	
 }

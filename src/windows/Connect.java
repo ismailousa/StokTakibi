@@ -8,7 +8,6 @@ import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 
-//import com.mysql.jdbc.Connection;
 
 public class Connect{
 	
@@ -43,6 +42,8 @@ public void addStock(Stok stok)
 
 	catch (SQLException ex) {
 		System.out.println(ex.getMessage());
+		JOptionPane.showMessageDialog(null, "Girdiginiz verileri kontrol ediniz !", "Hata",
+                JOptionPane.ERROR_MESSAGE);
 }
 }
 
@@ -77,26 +78,11 @@ public void updateStock(Stok stok)
 
 	catch (SQLException ex) {
 		System.out.println(ex.getMessage());
+		JOptionPane.showMessageDialog(null, "Girdiginiz verileri kontrol ediniz !", "Hata",
+                JOptionPane.ERROR_MESSAGE);
 }
 }
 
-
-public void insertBirim()
-{
-	try {
-	     Connection conn = getConnection(); 
-	     Statement st = (Statement) conn.createStatement(); 
-
-	     st.executeUpdate("INSERT INTO birim (Adi) Values ('Kilogram')");
-
-	     conn.close();
-		    System.out.println("Added");
-	}
-
-	catch (SQLException ex) {
-		System.out.println(ex.getMessage());
-}
-}
 
 public List<String> getCbx(String tableName)
 {
@@ -128,35 +114,8 @@ public String getAdi(String Id, String table)
 	rs.next();
 	return rs.getString(1);
 	} catch (SQLException e) {
-		// TODO Auto-generated catch block
 		e.printStackTrace();
 	}
 	return null;
-}
-
-public static DefaultTableModel buildTableModel(ResultSet rs)
-        throws SQLException {
-
-    java.sql.ResultSetMetaData metaData = rs.getMetaData();
-
-    // names of columns
-    Vector<String> columnNames = new Vector<String>();
-    int columnCount = metaData.getColumnCount();
-    for (int column = 1; column <= columnCount; column++) {
-        columnNames.add(metaData.getColumnName(column));
-    }
-
-    // data of the table
-    Vector<Vector<Object>> data = new Vector<Vector<Object>>();
-    while (rs.next()) {
-        Vector<Object> vector = new Vector<Object>();
-        for (int columnIndex = 1; columnIndex <= columnCount; columnIndex++) {
-            vector.add(rs.getObject(columnIndex));
-        }
-        data.add(vector);
-    }
-
-    return new DefaultTableModel(data, columnNames);
-
 }
 }
